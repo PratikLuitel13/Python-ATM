@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python ATM System | Interactive Localhost Kiosk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="background-ambient">
+        <div class="ambient-glow glow-1"></div>
+        <div class="ambient-glow glow-2"></div>
+    </div>
+
+    <div class="kiosk-container">
+        <!-- ATM Top Header Branding -->
+        <header class="atm-header">
+            <div class="brand-badge">
+                <div class="bank-logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <span class="bank-name">PYTHON NATIONAL BANK</span>
+                    <span class="atm-id">ATM TERMINAL #PY-5000 • 24/7 ONLINE</span>
+                </div>
+            </div>
+            <div class="top-controls">
+                <button class="sound-toggle" id="soundToggle" title="Toggle ATM Audio Feedback">
+                    <span id="soundIcon">🔊 Sound ON</span>
+                </button>
+                <button class="quick-reset-btn" id="resetAtmBtn" title="Reset Session to Default">
+                    🔄 Reset ATM
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Kiosk Body -->
+        <main class="kiosk-body">
+            <!-- Left & Center: ATM Screen Kiosk Frame -->
+            <section class="screen-kiosk-wrapper">
+                <!-- Screen Bezel -->
+                <div class="atm-screen-bezel">
+                    <div class="screen-top-bar">
+                        <div class="status-indicator live-pulse">
+                            <span class="dot"></span>
+                            <span class="status-text">SYSTEM SECURE</span>
+                        </div>
+                        <div class="live-clock" id="liveClock">--:--:--</div>
+                        <div class="network-badge">⚡ LOCALHOST : 5000</div>
+                    </div>
+
+                    <!-- Digital Screen Glass -->
+                    <div class="atm-screen-glass" id="atmScreen">
+                        
+                        <!-- 1. SCREEN: WELCOME / PIN ENTRY -->
+                        <div class="screen-view active" id="viewWelcome">
+                            <div class="welcome-header">
+                                <div class="shield-icon">🔐</div>
+                                <h2>Welcome to Python ATM</h2>
+                                <p class="sub-welcome">Please insert your card or enter your 4-digit PIN</p>
+                            </div>
+
+                            <div class="pin-display-card">
+                                <span class="pin-label">ENTER 4-DIGIT PIN</span>
+                                <div class="pin-dots-container" id="pinDots">
+                                    <div class="pin-dot"></div>
+                                    <div class="pin-dot"></div>
+                                    <div class="pin-dot"></div>
+                                    <div class="pin-dot"></div>
+                                </div>
+                                <div class="pin-hint-text">Use the numeric keypad below or your keyboard</div>
+                            </div>
+
+                            <div class="alert-box hidden" id="pinAlert">
+                                <span class="alert-icon">⚠️</span>
+                                <span class="alert-msg" id="pinAlertMsg">Incorrect PIN.</span>
+                            </div>
+                        </div>
+
+                        <!-- 2. SCREEN: CARD BLOCKED -->
+                        <div class="screen-view" id="viewBlocked">
+                            <div class="blocked-state">
+                                <div class="blocked-icon">🚫</div>
+                                <h2 class="danger-text">CARD BLOCKED</h2>
+                                <p>You have exceeded the maximum of 3 incorrect PIN attempts.</p>
+                                <div class="blocked-box">
+                                    Your card has been retained for security reasons as per banking protocol.
+                                </div>
+                                <button class="action-button primary-accent" id="unblockBtn">
+                                    Reset System & Unlock Card
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 3. SCREEN: MAIN MENU -->
+                        <div class="screen-view" id="viewMainMenu">
+                            <div class="menu-header">
+                                <div class="user-greeting">
+                                    <span class="greeting-sub">Authenticated Account</span>
+                                    <h3 class="user-name">Python Mini Project User</h3>
+                                </div>
+                                <button class="exit-chip" id="menuExitBtn">
+                                    <span>Eject Card</span> ⏏️
+                                </button>
+                            </div>
+
+                            <p class="menu-instruction">Please select a transaction to proceed:</p>
+
+                            <div class="menu-grid">
+                                <button class="menu-tile" id="btnMenuBalance">
+                                    <span class="tile-icon">💰</span>
+                                    <span class="tile-title">1. Check Balance</span>
+                                    <span class="tile-desc">View available funds</span>
+                                </button>
+
+                                <button class="menu-tile" id="btnMenuWithdraw">
+                                    <span class="tile-icon">🏧</span>
+                                    <span class="tile-title">2. Cash Withdrawal</span>
+                                    <span class="tile-desc">Fast cash or custom amount</span>
+                                </button>
+
+                                <button class="menu-tile" id="btnMenuDeposit">
+                                    <span class="tile-icon">📥</span>
+                                    <span class="tile-title">3. Cash Deposit</span>
+                                    <span class="tile-desc">Deposit currency notes</span>
+                                </button>
+
+                                <button class="menu-tile" id="btnMenuStatement">
+                                    <span class="tile-icon">📄</span>
+                                    <span class="tile-title">4. Mini Statement</span>
+                                    <span class="tile-desc">Recent 5 transactions</span>
+                                </button>
+
+                                <button class="menu-tile" id="btnMenuChangePin">
+                                    <span class="tile-icon">🔑</span>
+                                    <span class="tile-title">5. Change PIN</span>
+                                    <span class="tile-desc">Update 4-digit security code</span>
+                                </button>
+
+                                <button class="menu-tile exit-tile" id="btnMenuLogout">
+                                    <span class="tile-icon">🚪</span>
+                                    <span class="tile-title">6. Exit Session</span>
+                                    <span class="tile-desc">End session & collect card</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 4. SCREEN: CHECK BALANCE -->
+                        <div class="screen-view" id="viewBalance">
+                            <div class="subpage-header">
+                                <h3>Account Balance</h3>
+                                <span class="badge-saving">Savings A/C •••••• 4892</span>
+                            </div>
+
+                            <div class="balance-card-display">
+                                <span class="bal-label">TOTAL AVAILABLE BALANCE</span>
+                                <div class="bal-amount" id="balanceDisplayAmount">RS 5,000.00</div>
+                                <div class="bal-updated">Last Updated: Just now</div>
+                            </div>
+
+                            <div class="screen-actions-row">
+                                <button class="action-button secondary" id="backFromBalance">
+                                    ⬅️ Back to Menu
+                                </button>
+                                <button class="action-button primary" id="withdrawFromBalance">
+                                    Withdraw Cash ➡️
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 5. SCREEN: WITHDRAWAL -->
+                        <div class="screen-view" id="viewWithdraw">
+                            <div class="subpage-header">
+                                <h3>Cash Withdrawal</h3>
+                                <span class="avail-bal-tag" id="withdrawAvailBal">Avail: RS 5,000.00</span>
+                            </div>
+
+                            <p class="section-hint">Select a fast cash preset or enter amount below:</p>
+
+                            <div class="fast-cash-grid">
+                                <button class="preset-btn" data-amount="500">RS 500</button>
+                                <button class="preset-btn" data-amount="1000">RS 1,000</button>
+                                <button class="preset-btn" data-amount="2000">RS 2,000</button>
+                                <button class="preset-btn" data-amount="5000">RS 5,000</button>
+                            </div>
+
+                            <div class="custom-amount-input-group">
+                                <label for="withdrawCustomInput">Or Enter Custom Amount (RS):</label>
+                                <div class="input-with-symbol">
+                                    <span class="currency-symbol">RS</span>
+                                    <input type="number" id="withdrawCustomInput" placeholder="e.g. 1500" min="100" step="100" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div class="alert-box hidden" id="withdrawAlert">
+                                <span class="alert-icon">⚠️</span>
+                                <span class="alert-msg" id="withdrawAlertMsg"></span>
+                            </div>
+
+                            <div class="screen-actions-row">
+                                <button class="action-button secondary" id="backFromWithdraw">
+                                    ⬅️ Back to Menu
+                                </button>
+                                <button class="action-button primary" id="confirmWithdrawBtn">
+                                    Dispense Cash 💵
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 6. SCREEN: DEPOSIT -->
+                        <div class="screen-view" id="viewDeposit">
+                            <div class="subpage-header">
+                                <h3>Cash Deposit</h3>
+                                <span class="avail-bal-tag" id="depositAvailBal">Current: RS 5,000.00</span>
+                            </div>
+
+                            <p class="section-hint">Enter the cash amount you wish to insert into the deposit slot:</p>
+
+                            <div class="fast-cash-grid">
+                                <button class="deposit-preset-btn" data-amount="500">+ RS 500</button>
+                                <button class="deposit-preset-btn" data-amount="1000">+ RS 1,000</button>
+                                <button class="deposit-preset-btn" data-amount="2000">+ RS 2,000</button>
+                                <button class="deposit-preset-btn" data-amount="5000">+ RS 5,000</button>
+                            </div>
+
+                            <div class="custom-amount-input-group">
+                                <label for="depositCustomInput">Or Enter Deposit Amount (RS):</label>
+                                <div class="input-with-symbol">
+                                    <span class="currency-symbol">RS</span>
+                                    <input type="number" id="depositCustomInput" placeholder="e.g. 2500" min="10" step="10" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div class="alert-box hidden" id="depositAlert">
+                                <span class="alert-icon">⚠️</span>
+                                <span class="alert-msg" id="depositAlertMsg"></span>
+                            </div>
+
+                            <div class="screen-actions-row">
+                                <button class="action-button secondary" id="backFromDeposit">
+                                    ⬅️ Back to Menu
+                                </button>
+                                <button class="action-button primary-accent" id="confirmDepositBtn">
+                                    Deposit Cash 📥
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 7. SCREEN: MINI STATEMENT -->
+                        <div class="screen-view" id="viewStatement">
+                            <div class="subpage-header">
+                                <h3>Mini Statement</h3>
+                                <span class="badge-saving">Recent Activity</span>
+                            </div>
+
+                            <div class="statement-receipt-frame">
+                                <div class="receipt-header">
+                                    <span class="receipt-bank">PYTHON NATIONAL BANK</span>
+                                    <span class="receipt-time" id="receiptTime">--</span>
+                                </div>
+                                <div class="receipt-divider">--------------------------------------</div>
+                                <div class="receipt-transactions" id="receiptTxList">
+                                    <!-- Dynamic Transaction rows -->
+                                </div>
+                                <div class="receipt-divider">--------------------------------------</div>
+                                <div class="receipt-footer">
+                                    <div class="receipt-bal-row">
+                                        <span>CURRENT BALANCE:</span>
+                                        <strong id="receiptBalance">RS 5,000.00</strong>
+                                    </div>
+                                    <div class="receipt-barcode">||| | |||| ||| || |||||| | |||</div>
+                                </div>
+                            </div>
+
+                            <div class="screen-actions-row">
+                                <button class="action-button secondary" id="backFromStatement">
+                                    ⬅️ Back to Menu
+                                </button>
+                                <button class="action-button primary" id="printStatementBtn">
+                                    🖨️ Print Receipt
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 8. SCREEN: CHANGE PIN -->
+                        <div class="screen-view" id="viewChangePin">
+                            <div class="subpage-header">
+                                <h3>Change ATM PIN</h3>
+                                <span class="badge-saving">Security Settings</span>
+                            </div>
+
+                            <div class="pin-change-form">
+                                <div class="form-group">
+                                    <label>Enter Current 4-Digit PIN:</label>
+                                    <input type="password" id="inputCurrentPin" maxlength="4" placeholder="••••" inputmode="numeric" autocomplete="off">
+                                </div>
+                                <div class="form-group">
+                                    <label>Enter New 4-Digit PIN:</label>
+                                    <input type="password" id="inputNewPin" maxlength="4" placeholder="••••" inputmode="numeric" autocomplete="off">
+                                </div>
+                                <div class="form-group">
+                                    <label>Confirm New 4-Digit PIN:</label>
+                                    <input type="password" id="inputConfirmPin" maxlength="4" placeholder="••••" inputmode="numeric" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div class="alert-box hidden" id="changePinAlert">
+                                <span class="alert-icon">⚠️</span>
+                                <span class="alert-msg" id="changePinAlertMsg"></span>
+                            </div>
+
+                            <div class="screen-actions-row">
+                                <button class="action-button secondary" id="backFromChangePin">
+                                    ⬅️ Back to Menu
+                                </button>
+                                <button class="action-button primary-accent" id="submitChangePinBtn">
+                                    Update PIN 🔐
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 9. SCREEN: EXIT / GOODBYE -->
+                        <div class="screen-view" id="viewGoodbye">
+                            <div class="goodbye-state">
+                                <div class="goodbye-icon">💳</div>
+                                <h2>Please Take Your Card</h2>
+                                <p>Thank you for banking with Python National Bank!</p>
+                                <div class="countdown-tag" id="goodbyeCountdown">Returning to home in 4s...</div>
+                                <button class="action-button primary" id="returnHomeNow">
+                                    Start New Session
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Hardware Slot Simulations (Cash Dispenser + Card Reader) -->
+                <div class="kiosk-hardware-row">
+                    <!-- Cash Dispenser Hatch -->
+                    <div class="hardware-box dispenser-box">
+                        <div class="box-label">CASH DISPENSER</div>
+                        <div class="dispenser-slot" id="dispenserSlot">
+                            <div class="dispensed-cash" id="dispensedCash">
+                                💵 <span>COLLECT CASH</span> 💵
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Receipt Printer Hatch -->
+                    <div class="hardware-box receipt-box">
+                        <div class="box-label">RECEIPT PRINTER</div>
+                        <div class="receipt-slot" id="receiptSlot">
+                            <div class="printed-paper" id="printedPaper">
+                                📄 RECEIPT
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Reader -->
+                    <div class="hardware-box card-reader-box">
+                        <div class="box-label">CARD READER</div>
+                        <div class="card-slot-wrap" id="cardSlotWrap">
+                            <div class="atm-card" id="atmCard">
+                                <div class="card-chip"></div>
+                                <div class="card-number">•••• 4892</div>
+                                <div class="card-logo">PYTHON</div>
+                            </div>
+                            <div class="slot-opening"></div>
+                        </div>
+                        <button class="card-toggle-btn" id="insertCardBtn">Insert Card</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Column: Physical Numeric Tactile Keypad -->
+            <section class="keypad-kiosk-panel">
+                <div class="keypad-housing">
+                    <div class="keypad-header">
+                        <span class="keypad-title">SECURITY KEYPAD</span>
+                        <span class="braille-dots">⠃⠁⠝⠅</span>
+                    </div>
+
+                    <!-- Keypad Grid -->
+                    <div class="atm-keypad-grid">
+                        <button class="key-btn" data-key="1"><span class="k-num">1</span><span class="k-sub">QZ</span></button>
+                        <button class="key-btn" data-key="2"><span class="k-num">2</span><span class="k-sub">ABC</span></button>
+                        <button class="key-btn" data-key="3"><span class="k-num">3</span><span class="k-sub">DEF</span></button>
+                        <button class="key-btn key-cancel" data-key="CANCEL"><span class="k-text">CANCEL</span></button>
+
+                        <button class="key-btn" data-key="4"><span class="k-num">4</span><span class="k-sub">GHI</span></button>
+                        <button class="key-btn" data-key="5"><span class="k-num">5</span><span class="k-sub">JKL</span></button>
+                        <button class="key-btn" data-key="6"><span class="k-num">6</span><span class="k-sub">MNO</span></button>
+                        <button class="key-btn key-clear" data-key="CLEAR"><span class="k-text">CLEAR</span></button>
+
+                        <button class="key-btn" data-key="7"><span class="k-num">7</span><span class="k-sub">PRS</span></button>
+                        <button class="key-btn" data-key="8"><span class="k-num">8</span><span class="k-sub">TUV</span></button>
+                        <button class="key-btn" data-key="9"><span class="k-num">9</span><span class="k-sub">WXY</span></button>
+                        <button class="key-btn key-enter" data-key="ENTER"><span class="k-text">ENTER</span></button>
+
+                        <button class="key-btn key-blank" disabled></button>
+                        <button class="key-btn" data-key="0"><span class="k-num">0</span><span class="k-sub">OPER</span></button>
+                        <button class="key-btn key-dot" data-key="."><span class="k-num">.</span></button>
+                        <button class="key-btn key-blank" disabled></button>
+                    </div>
+                </div>
+
+                <!-- Info Guide Panel -->
+                <div class="guide-panel">
+                    <h4>💡 Quick Terminal Guide</h4>
+                    <ul>
+                        <li><strong>Security Rule:</strong> Card blocks automatically after 3 failed attempts.</li>
+                        <li><strong>Receipt Printer:</strong> Automatic transaction slips printed after every operation.</li>
+                        <li><strong>Physical Keyboard:</strong> You can type numbers & press <kbd>Enter</kbd> / <kbd>Backspace</kbd>.</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Interactive Thermal Receipt Viewer Modal -->
+    <div class="receipt-modal-backdrop hidden" id="receiptModalBackdrop">
+        <div class="receipt-modal-card" id="receiptModalCard">
+            <button class="receipt-modal-close" id="closeReceiptModalBtn" title="Close receipt">&times;</button>
+            <div class="thermal-receipt-paper" id="thermalReceiptContent">
+                <div class="receipt-cut-edge top"></div>
+                <div class="receipt-inner-body">
+                    <div class="t-receipt-header">
+                        <div class="t-bank-logo">🏧 PYTHON NATIONAL BANK</div>
+                        <div class="t-atm-name">ATM SELF-SERVICE TERMINAL</div>
+                        <div class="t-receipt-subtitle">*** TRANSACTION RECORD ***</div>
+                    </div>
+                    <div class="t-receipt-divider">-----------------------------------------</div>
+                    <div class="t-receipt-grid">
+                        <div class="t-row"><span class="t-label">DATE & TIME:</span><span class="t-val" id="rDateVal">--</span></div>
+                        <div class="t-row"><span class="t-label">TERMINAL ID:</span><span class="t-val">PNB-ATM-0492</span></div>
+                        <div class="t-row"><span class="t-label">CARD NUMBER:</span><span class="t-val">•••• •••• •••• 4892</span></div>
+                        <div class="t-row"><span class="t-label">ACCOUNT TYPE:</span><span class="t-val">SAVINGS A/C</span></div>
+                        <div class="t-row"><span class="t-label">TXN REF NO :</span><span class="t-val" id="rRefVal">#TXN-000000</span></div>
+                    </div>
+                    <div class="t-receipt-divider">-----------------------------------------</div>
+                    <div class="t-receipt-details">
+                        <div class="t-row t-highlight"><span class="t-label">TRANSACTION:</span><strong class="t-val" id="rTypeVal">--</strong></div>
+                        <div class="t-row t-amount-row" id="rAmountRow"><span class="t-label">TXN AMOUNT:</span><strong class="t-val" id="rAmountVal">--</strong></div>
+                        <div class="t-row t-bal-row" id="rBalRow"><span class="t-label">AVAIL BALANCE:</span><strong class="t-val" id="rBalanceVal">--</strong></div>
+                        <div class="t-row"><span class="t-label">AUTH STATUS:</span><span class="t-val" id="rStatusVal">APPROVED (000)</span></div>
+                    </div>
+                    <div id="rCustomTxList" class="t-custom-tx-list"></div>
+                    <div class="t-receipt-divider">-----------------------------------------</div>
+                    <div class="t-receipt-footer">
+                        <div class="t-barcode">|||| ||| ||||| || |||||| | |||| |||</div>
+                        <p class="t-thank-you">THANK YOU FOR BANKING WITH US!</p>
+                        <p class="t-disclaimer">PLEASE RETAIN THIS RECEIPT FOR YOUR RECORDS</p>
+                    </div>
+                </div>
+                <div class="receipt-cut-edge bottom"></div>
+            </div>
+            <div class="receipt-modal-actions">
+                <button class="action-button primary" id="collectReceiptModalBtn">
+                    ✅ Take Receipt
+                </button>
+                <button class="action-button secondary" id="printThermalReceiptBtn">
+                    🖨️ Print Slip
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
